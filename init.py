@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from datetime import datetime
-% matplotlib inline
+%matplotlib inline
 
 from collections import Counter
 from sklearn.model_selection import train_test_split
