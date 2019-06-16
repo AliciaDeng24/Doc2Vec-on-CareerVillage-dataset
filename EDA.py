@@ -128,17 +128,3 @@ questions_final.columns = ['questions_id', 'questions_author_id', 'questions_dat
 # Save final question and professional datasets into csv for furture use
 questions_final.to_csv('questions_final.csv')
 all_professionals.to_csv('professionals_final.csv')
-
-
-
-# # Visualizations
-# # 1. Days joined versus num of questions answered
-# prof_no_dup = all_professionals.drop_duplicates(subset=['professionals_id'])
-#
-# fig, ax = plt.subplots(figsize=(10,5))
-# ax.scatter(prof_no_dup['how_many_questions_answered'], prof_no_dup['length_since_joined'])
-# ax.set_xlabel('Number of questions answered')
-# ax.set_ylabel('Days since joined')
-#
-#
-# # 2
