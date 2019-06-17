@@ -7,7 +7,7 @@ import seaborn as sns
 from datetime import datetime
 
 from collections import Counter
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, KFold
 from nltk.stem.porter import *
 import nltk
 from nltk.corpus import stopwords

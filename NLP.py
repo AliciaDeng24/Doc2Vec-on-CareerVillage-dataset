@@ -101,7 +101,14 @@ tsne_scatterplot(pro_tags_dict, train_dataset.question_tags, 100, "t-SNE on prof
 tsne_scatterplot(industry_dic, train_dataset.professionals_industry, 100, "t-SNE on industries")
 
 
+# Initiate data_processor
+dp = DataPrePro()
+
+# Using KFold Cross Validation
 
 # Train questions embedding vectors based on question titles, tags, and bodies
-
+train_dataset['question_all'] = train_dataset['questions_body'] + ' ' + train_dataset['questions_title'] + ' ' + train_dataset['question_tags']
+ques_dict, ques_d2v = train_doc2vec(train_dataset, 'questions_id', ['question_all'], dim=20, epoch=15)
 # Train professional embedding vectors based on their characteristics (tags followed, industry, headline)
+prof_fea = ['professionals_industry', 'professionals_headline','tags_tag_name']
+pro_dict, pro_d2v = train_doc2vec(all_professionals, 'professionals_id', prof_fea, dim=20, epoch=15)
