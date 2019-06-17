@@ -1,3 +1,6 @@
+from init import *
+from nltk.corpus import stopwords
+
 class text_prossessor():
     '''
     Preprocess text body (A string)
