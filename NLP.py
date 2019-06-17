@@ -2,6 +2,7 @@ from init import *
 from text_processor import text_prossessor
 from data_processor import DataPrePro
 from nltk.corpus import stopwords
+from NN_Models import *
 
 professionals_final = pd.read_csv('professionals_final.csv')
 questions_final = pd.read_csv('questions_final.csv')
@@ -104,11 +105,49 @@ tsne_scatterplot(industry_dic, train_dataset.professionals_industry, 100, "t-SNE
 # Initiate data_processor
 dp = DataPrePro()
 
-# Using KFold Cross Validation
+# Define embedded dimensions
+emb_dim_ques = 20
+emb_dim_pro = 20
+
+# Neural network layers dimensions
+dims_list = [64, 64, 32, 32]
+
+# Split 10% of the total dataset as test set
+random.seed(100)
+N = len(questions_final)
+train_rows = random.sample(list(range(N)), round(0.9*N))
+test_rows = list(set(list(range(N))) - set(train_rows))
+
+train_dataset = questions_final.iloc[train_rows, :]
+test_dataset = questions_final.iloc[test_rows, :]
+
 
 # Train questions embedding vectors based on question titles, tags, and bodies
 train_dataset['question_all'] = train_dataset['questions_body'] + ' ' + train_dataset['questions_title'] + ' ' + train_dataset['question_tags']
-ques_dict, ques_d2v = train_doc2vec(train_dataset, 'questions_id', ['question_all'], dim=20, epoch=15)
+ques_dict, ques_d2v = train_doc2vec(train_dataset, 'questions_id', ['question_all'], dim=emb_dim_ques, epoch=15)
+
 # Train professional embedding vectors based on their characteristics (tags followed, industry, headline)
 prof_fea = ['professionals_industry', 'professionals_headline','tags_tag_name']
-pro_dict, pro_d2v = train_doc2vec(all_professionals, 'professionals_id', prof_fea, dim=20, epoch=15)
+pro_dict, _ = train_doc2vec(all_professionals, 'professionals_id', prof_fea, dim=emb_dim_pro, epoch=15)
+
+# Append scaled characteristics to professional embedded vectors (measurement of activity)
+# Training set
+ques_input, pro_input, ques_ids, pro_ids = dp.preprocess(pro_dict, ques_dict, professionals_final, train_dataset, emb_dim_ques, emb_dim_pro)
+
+# A. Fit a neural network using pre-defined Function
+
+# Note that this neural network takes embedded question vectors as inputs and embedded professional vectors as output
+model_1 = nn_model(ques_input, pro_input, dims_list)
+model_1.compile(optimizer=Adam(lr=0.001), loss='mean_absolute_error', metrics=['accuracy'])
+model_1.fit(ques_input, pro_input, validation_split=0.1, epoch=20)
+
+# Transform test_set with scaled characteristics
+# Here, we use the pretrained Doc2Vec object to project embedded vectors for test questions
+test_input_df, test_input_mtx = transform_test(test_dataset, ques_d2v, True)
+
+# Predict using trained neural network
+prediction_1 = model_1.predict(test_input_mtx)
+
+# Recommender System
+# For each question, choose 10 candidate professionals whose embedded vectors are closest to projected vector
+recommended_prof = find_all_closest(pro_ids, pro_input, ques_ids, prediction)
